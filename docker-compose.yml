@@ -67,6 +67,28 @@ services:
     networks:
       - get_network
 
+  ai_service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: get_ai_service
+    restart: unless-stopped
+    ports:
+      - "8001:8001"
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      PROJECT_NAME: ${AI_PROJECT_NAME:-Get Idiomas AI Evaluation Service}
+      VERSION: ${VERSION:-0.1.0}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-gpt-4o}
+      ENFORCE_ZDR: ${ENFORCE_ZDR:-true}
+      AI_DETECTION_THRESHOLD: ${AI_DETECTION_THRESHOLD:-0.70}
+    volumes:
+      - ./ai_service:/app
+    networks:
+      - get_network
+
 volumes:
   postgres_data:
   redis_data:

@@ -1,0 +1,75 @@
+{
+  "$schema": "../../.agent-system/contracts/task_spec.schema.json",
+  "task_id": "TASK-1.2",
+  "backlog_ref": "AI-01 / AI-02",
+  "title": "Servicio de IA y Grafo (ai_service con LangGraph)",
+  "target_module": "ai_service",
+  "related_requirements": [
+    "RF-06",
+    "RF-08",
+    "RF-09",
+    "RNF-REND-01",
+    "RNF-SEG-01"
+  ],
+  "summary": "Construcción del microservicio aislado ai_service basado en FastAPI y LangGraph. Implementa pipeline de evaluación mediante StateGraph tipado, prompts pedagógicos para B2 First y C1 Advanced, análisis estructurado de errores ortográficos/gramaticales con offsets, generación de modelo ejemplar Banda 5, detección y alerta de texto generado por IA, bucle de validación y reintento con Pydantic v2, y políticas de privacidad ZDR.",
+  "status": "COMPLETED",
+  "database_changes": {
+    "migration_required": false,
+    "tables_affected": [],
+    "breaking_changes": false
+  },
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/internal/v1/evaluate",
+      "status_code": 200,
+      "request_schema": "EvaluationRequest",
+      "response_schema": "EvaluationResponse"
+    },
+    {
+      "method": "GET",
+      "path": "/health",
+      "status_code": 200,
+      "request_schema": "None",
+      "response_schema": "HealthCheckResponse"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "scenario": "Evaluación exitosa de texto digital B2/C1 (Happy Path)",
+      "given": "Un payload válido con student_text, task_prompt, level B2/C1 y text_type admitido.",
+      "when": "Se envía una petición HTTP POST a /internal/v1/evaluate.",
+      "then": "El servicio responde HTTP 200 con listado estructurado de errores y offsets, modelo ejemplar Banda 5, métricas de detección de IA y recuento de palabras."
+    },
+    {
+      "scenario": "Alerta de texto generado por IA",
+      "given": "Un texto con patrones y uniformidad sintética generados artificialmente.",
+      "when": "Se procesa la evaluación mediante el pipeline LangGraph.",
+      "then": "El objeto ai_detection asigna probabilidad superior al umbral configurado (>= 0.70) y activa is_likely_ai: true con justificación en rationale."
+    },
+    {
+      "scenario": "Bucle de autorreparación ante respuesta mal formateada del LLM",
+      "given": "Una respuesta de nodo LLM con formato JSON incompleto o no válido.",
+      "when": "El nodo validator detecta la discrepancia con el esquema Pydantic.",
+      "then": "El grafo reintenta la llamada incrementando retry_count hasta alcanzar validación o agotar límite de 2 reintentos de forma controlada."
+    },
+    {
+      "scenario": "Validación de entrada y rechazo de parámetros no conformes",
+      "given": "Una petición con nivel inexistente o texto de longitud cero.",
+      "when": "Se envía la petición a POST /internal/v1/evaluate.",
+      "then": "El servicio responde con código HTTP 422 Unprocessable Entity y formato de error canónico sin colapsar el proceso."
+    },
+    {
+      "scenario": "Verificación de salud y política ZDR activa",
+      "given": "El microservicio ai_service en ejecución.",
+      "when": "Se envía petición HTTP GET a /health.",
+      "then": "El servicio responde HTTP 200 con status healthy y confirmación de política Zero Data Retention habilitada."
+    }
+  ],
+  "security_considerations": [
+    "Enforzar Zero Data Retention (ZDR) en cabeceras de cliente para llamadas a proveedores de LLM.",
+    "Anonimización de PII (nombres, correos, identificadores) antes de la interpolación de texto en prompts.",
+    "Aislamiento estricto de red: ai_service solo es accesible internamente desde backend y Celery workers, sin exposición al frontend.",
+    "Timeouts estrictos en nodos LLM (máximo 45 segundos por llamada) para prevenir denegación de servicio por peticiones colgadas."
+  ]
+}

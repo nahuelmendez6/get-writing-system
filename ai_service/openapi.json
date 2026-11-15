@@ -1,0 +1,433 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Get Idiomas AI Evaluation Service",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Root health endpoint",
+        "operationId": "root_health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Check operational health and Zero Data Retention policy status.",
+        "operationId": "get_health_internal_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/evaluate": {
+      "post": {
+        "tags": [
+          "Evaluation"
+        ],
+        "summary": "Evaluate writing submission",
+        "description": "Executes the LangGraph evaluation pipeline over the candidate text.",
+        "operationId": "evaluate_submission_internal_v1_evaluate_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AIDetectionResult": {
+        "properties": {
+          "probability": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Probability",
+            "description": "Estimated probability of synthetic AI generation"
+          },
+          "is_likely_ai": {
+            "type": "boolean",
+            "title": "Is Likely Ai",
+            "description": "Alert flag indicating probable AI generation"
+          },
+          "confidence": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "title": "Confidence",
+            "description": "Confidence band of the detection assessment"
+          },
+          "rationale": {
+            "type": "string",
+            "title": "Rationale",
+            "description": "Detailed justification of stylistic and syntactic indicators"
+          }
+        },
+        "type": "object",
+        "required": [
+          "probability",
+          "is_likely_ai",
+          "confidence",
+          "rationale"
+        ],
+        "title": "AIDetectionResult"
+      },
+      "EvaluationRequest": {
+        "properties": {
+          "submission_id": {
+            "type": "string",
+            "title": "Submission Id",
+            "description": "UUID or unique identifier of the student submission"
+          },
+          "student_text": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Student Text",
+            "description": "Student written submission text"
+          },
+          "task_prompt": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Task Prompt",
+            "description": "Assignment writing prompt and instructions"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "B1",
+              "B2",
+              "C1",
+              "C2"
+            ],
+            "title": "Level",
+            "description": "Target Cambridge / CEFR examination level"
+          },
+          "text_type": {
+            "type": "string",
+            "enum": [
+              "essay",
+              "article",
+              "report",
+              "review",
+              "email",
+              "proposal",
+              "story"
+            ],
+            "title": "Text Type",
+            "description": "Target text genre"
+          },
+          "min_words": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Words",
+            "description": "Minimum expected word count"
+          },
+          "max_words": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Words",
+            "description": "Maximum expected word count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "submission_id",
+          "student_text",
+          "task_prompt",
+          "level",
+          "text_type"
+        ],
+        "title": "EvaluationRequest"
+      },
+      "EvaluationResponse": {
+        "properties": {
+          "submission_id": {
+            "type": "string",
+            "title": "Submission Id",
+            "description": "Submission identifier"
+          },
+          "word_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Word Count",
+            "description": "Total words counted in the student submission"
+          },
+          "mistakes": {
+            "items": {
+              "$ref": "#/components/schemas/MistakeAnnotation"
+            },
+            "type": "array",
+            "title": "Mistakes",
+            "description": "List of identified errors with character offsets"
+          },
+          "exemplar_model": {
+            "type": "string",
+            "title": "Exemplar Model",
+            "description": "Band 5 exemplary rewritten version of the text"
+          },
+          "ai_detection": {
+            "$ref": "#/components/schemas/AIDetectionResult",
+            "description": "AI text authorship evaluation result"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "FAILED"
+            ],
+            "title": "Status",
+            "description": "Overall pipeline execution status",
+            "default": "SUCCESS"
+          },
+          "execution_time_seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Execution Time Seconds",
+            "description": "Total execution time in seconds"
+          }
+        },
+        "type": "object",
+        "required": [
+          "submission_id",
+          "word_count",
+          "exemplar_model",
+          "ai_detection",
+          "execution_time_seconds"
+        ],
+        "title": "EvaluationResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "HealthCheckResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Operational status of the service"
+          },
+          "service": {
+            "type": "string",
+            "title": "Service",
+            "description": "Service name"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Runtime environment"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Service version"
+          },
+          "zdr_enforced": {
+            "type": "boolean",
+            "title": "Zdr Enforced",
+            "description": "Indicates if Zero Data Retention is active"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Verification timestamp UTC"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "service",
+          "environment",
+          "version",
+          "zdr_enforced",
+          "timestamp"
+        ],
+        "title": "HealthCheckResponse"
+      },
+      "MistakeAnnotation": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id",
+            "description": "Unique mistake identifier"
+          },
+          "start_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Start Index",
+            "description": "Character start offset in the original text"
+          },
+          "end_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "End Index",
+            "description": "Character end offset in the original text"
+          },
+          "quote": {
+            "type": "string",
+            "title": "Quote",
+            "description": "Original excerpt containing the mistake"
+          },
+          "correction": {
+            "type": "string",
+            "title": "Correction",
+            "description": "Suggested correction"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "grammar",
+              "spelling",
+              "punctuation",
+              "vocabulary",
+              "style"
+            ],
+            "title": "Category",
+            "description": "Pedagogical category of the mistake"
+          },
+          "explanation": {
+            "type": "string",
+            "title": "Explanation",
+            "description": "Pedagogical explanation in Spanish explaining why it is an error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "start_index",
+          "end_index",
+          "quote",
+          "correction",
+          "category",
+          "explanation"
+        ],
+        "title": "MistakeAnnotation"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
