@@ -1,0 +1,96 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Get Idiomas AI Writing System",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Root health check",
+        "description": "Verify service health and database connectivity at root path.",
+        "operationId": "root_health_check_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check endpoint",
+        "description": "Check operational health and database connectivity.",
+        "operationId": "health_check_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthCheckResponse": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Estado general del servicio ('healthy', 'degraded')"
+          },
+          "environment": {
+            "type": "string",
+            "title": "Environment",
+            "description": "Entorno ('development', 'staging', 'production')"
+          },
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "description": "Versi\u00f3n del backend"
+          },
+          "database": {
+            "type": "string",
+            "title": "Database",
+            "description": "Estado BD ('connected', 'disconnected')"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "description": "Marca temporal UTC de la verificaci\u00f3n"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "environment",
+          "version",
+          "database",
+          "timestamp"
+        ],
+        "title": "HealthCheckResponse"
+      }
+    }
+  }
+}

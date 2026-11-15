@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "task_id": "TASK-1.1",
+  "backlog_ref": "BE-01 / BE-02",
+  "title": "Core Backend: Configuración de FastAPI, PostgreSQL, Alembic y Docker",
+  "target_module": "backend",
+  "related_requirements": [
+    "RF-01",
+    "RF-02",
+    "RNF-REND-01",
+    "RNF-SEG-01"
+  ],
+  "summary": "Configuración fundacional del backend modular en FastAPI con motor asíncrono SQLAlchemy 2.0 (PostgreSQL/asyncpg), entorno de migraciones Alembic, convenciones de modelos base (UUID v4, marcas de tiempo UTC), gestión de configuración con pydantic-settings, respuestas de error estandarizadas, orquestación Docker Compose y endpoint de verificación de salud (/health y /api/v1/health).",
+  "status": "PLANNED",
+  "database_changes": {
+    "migration_required": true,
+    "tables_affected": [],
+    "breaking_changes": false
+  },
+  "api_endpoints": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "status_code": 200,
+      "request_schema": "None",
+      "response_schema": "HealthCheckResponse"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/health",
+      "status_code": 200,
+      "request_schema": "None",
+      "response_schema": "HealthCheckResponse"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "scenario": "Verificación de salud del sistema (Happy Path)",
+      "given": "La aplicación FastAPI y el motor de base de datos se encuentran inicializados y operativos.",
+      "when": "Se realiza una petición HTTP GET a /health o /api/v1/health.",
+      "then": "El servidor responde con código HTTP 200 OK y un payload JSON con status 'healthy', database 'connected', version del sistema y timestamp UTC actual."
+    },
+    {
+      "scenario": "Degradación por pérdida de conectividad con la base de datos",
+      "given": "La aplicación FastAPI está ejecutándose pero la base de datos PostgreSQL no está accesible.",
+      "when": "Se realiza una petición HTTP GET a /health o /api/v1/health.",
+      "then": "El servidor maneja la excepción sin caerse y responde con código HTTP 200 o 503 con status 'degraded' y database 'disconnected' o 'unreachable'."
+    },
+    {
+      "scenario": "Convención de modelos base SQLAlchemy",
+      "given": "Se define una entidad declarativa derivada de BaseModelMixin o Base.",
+      "when": "Se instancia y persiste el modelo.",
+      "then": "Posee automáticamente un atributo 'id' de tipo UUID v4 único como clave primaria, 'created_at' con marca de tiempo UTC por defecto, y 'updated_at' con actualización automática en UTC."
+    },
+    {
+      "scenario": "Inicialización del entorno de migraciones Alembic asíncrono",
+      "given": "La configuración de alembic.ini y env.py configurados para operar en modo asíncrono con SQLAlchemy 2.",
+      "when": "Se invoca la inspección de migraciones con Alembic.",
+      "then": "Alembic se ejecuta sin errores de importación y enlaza correctamente target_metadata con Base.metadata."
+    }
+  ],
+  "security_considerations": [
+    "Las credenciales de base de datos y variables sensibles deben cargarse exclusivamente desde variables de entorno a través de pydantic-settings y nunca commitearse en texto plano.",
+    "El manejador global de excepciones debe sanitizar cualquier excepción interna de SQLAlchemy/asyncpg para prevenir fugas de estructura o credenciales de conexión en respuestas HTTP.",
+    "Configuración estricta de CORS en FastAPI parametrizable por entorno (ENVIRONMENT=development|production).",
+    "Los logs estructurados no deben registrar cadenas de conexión, contraseñas ni datos sensibles."
+  ]
+}
