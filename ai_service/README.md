@@ -4,7 +4,7 @@ Microservicio especializado en la evaluación automática de redacciones académ
 
 ## Arquitectura del Servicio
 
-El servicio implementa un grafo de estado dirigido (`StateGraph`) estructurado en 5 nodos principales:
+El servicio implementa un grafo de estado dirigido (`StateGraph`) estructurado en 7 nodos principales:
 
 ```
 [START]
@@ -17,6 +17,12 @@ El servicio implementa un grafo de estado dirigido (`StateGraph`) estructurado e
    │
    ▼
 [exemplar_gen_node]      # Generación de reescritura ejemplar Banda 5
+   │
+   ▼
+[rubric_eval_node]       # Evaluación 4 bandas Cambridge (0-5), nota interna (0-10) y longitud
+   │
+   ▼
+[feedback_gen_node]      # Síntesis pedagógica en español: fortalezas, mejoras y 3 consejos
    │
    ▼
 [ai_detector_node]       # Detección de patrones sintéticos y alerta de autoría por IA

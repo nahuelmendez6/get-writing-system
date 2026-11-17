@@ -58,6 +58,76 @@ Output strictly valid JSON:
 }}
 """
 
+RUBRIC_EVALUATION_PROMPT = """
+{level_guidelines}
+
+Task Prompt:
+\"\"\"{task_prompt}\"\"\"
+
+Text Type / Genre: {text_type}
+Candidate Submission (Word Count: {word_count}, Target: {min_words}-{max_words}):
+\"\"\"{student_text}\"\"\"
+
+Instructions:
+Evaluate the candidate's writing across the 4 Cambridge assessment criteria:
+1. Content (0-5 band scale): Assess task completion, relevance, and development of prompt points.
+2. Communicative Achievement (0-5 band scale): Assess genre conventions, register, tone, and holding reader attention.
+3. Organisation (0-5 band scale): Assess paragraph structure, coherence, and cohesive devices.
+4. Language (0-5 band scale): Assess vocabulary range/accuracy and grammatical control/complexity.
+
+If word count deviates by >10% from required limits ({min_words}-{max_words}), apply a length penalty on Content.
+Calculate raw_score (sum of 4 criteria, 0-20) and institutional_score ((raw_score / 20) * 10).
+
+Output strictly valid JSON:
+{{
+  "criteria": [
+    {{
+      "name": "Content",
+      "score": 4.0,
+      "max_score": 5.0,
+      "band_descriptor": "All content is relevant to the task.",
+      "justification": "Justificación fundamentada en evidencias del texto."
+    }}
+  ],
+  "raw_score": 16.0,
+  "max_raw_score": 20.0,
+  "institutional_score": 8.0,
+  "length_penalty": false,
+  "word_count_status": "NORMAL"
+}}
+"""
+
+FEEDBACK_GENERATION_PROMPT = """
+You are an expert Cambridge English writing tutor providing constructive pedagogical feedback in Spanish.
+Target Level: {level}
+Text Type: {text_type}
+Institutional Score: {institutional_score}/10.0
+
+Student Text:
+\"\"\"{student_text}\"\"\"
+
+Evaluation Summary:
+- Content Band: {content_score}
+- Communicative Achievement Band: {ca_score}
+- Organisation Band: {org_score}
+- Language Band: {lang_score}
+
+Instructions:
+Generate structured pedagogical feedback in Spanish:
+1. overall_feedback: Constructive evaluation of competence and communicative efficacy.
+2. strengths: 2 to 4 specific positive aspects observed in the writing.
+3. areas_for_improvement: 2 to 4 priority development areas.
+4. actionable_tips: Exactly 3 practical recommendations for future writings.
+
+Output strictly valid JSON:
+{{
+  "overall_feedback": "Resumen cualitativo en español...",
+  "strengths": ["Fortaleza 1", "Fortaleza 2"],
+  "areas_for_improvement": ["Área 1", "Área 2"],
+  "actionable_tips": ["Tip 1", "Tip 2", "Tip 3"]
+}}
+"""
+
 AI_DETECTION_PROMPT = """
 Analyze the following student writing submission for indicators of artificial intelligence generation (e.g. ChatGPT, Claude, Gemini).
 Assess:

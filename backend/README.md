@@ -55,9 +55,13 @@ backend/
    mypy --strict app tests
    ```
 
-## Endpoints de Salud
+## Endpoints Principales
 
 - `GET /health`: Verificación básica de salud y estado de la base de datos en la raíz.
 - `GET /api/v1/health`: Verificación de salud bajo el prefijo API v1.
+- `GET /api/v1/rubrics`: Listado de rúbricas con filtrado por nivel CEFR (`?level=B2`) y paginación.
+- `GET /api/v1/rubrics/{id}`: Detalle completo de rúbrica con criterios y descriptores de banda.
+- `POST /api/v1/rubrics`: Creación de rúbrica con criterios anidados.
+- `POST /api/v1/rubrics/{id}/criteria`: Adición de un criterio a una rúbrica existente.
 - Documentación interactiva Swagger: `http://localhost:8000/docs`
 - Documentación ReDoc: `http://localhost:8000/redoc`

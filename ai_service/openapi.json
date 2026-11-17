@@ -132,6 +132,47 @@
         ],
         "title": "AIDetectionResult"
       },
+      "CriterionEvaluation": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Assessment criterion (Content, Communicative Achievement, Organisation, Language)"
+          },
+          "score": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 0.0,
+            "title": "Score",
+            "description": "Assigned band score from 0.0 to 5.0"
+          },
+          "max_score": {
+            "type": "number",
+            "minimum": 1.0,
+            "title": "Max Score",
+            "description": "Maximum attainable band score",
+            "default": 5.0
+          },
+          "band_descriptor": {
+            "type": "string",
+            "title": "Band Descriptor",
+            "description": "Official descriptor matching the assigned band"
+          },
+          "justification": {
+            "type": "string",
+            "title": "Justification",
+            "description": "Detailed pedagogical justification citing textual evidence"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "score",
+          "band_descriptor",
+          "justification"
+        ],
+        "title": "CriterionEvaluation"
+      },
       "EvaluationRequest": {
         "properties": {
           "submission_id": {
@@ -240,6 +281,14 @@
             "title": "Exemplar Model",
             "description": "Band 5 exemplary rewritten version of the text"
           },
+          "rubric_evaluation": {
+            "$ref": "#/components/schemas/RubricEvaluation",
+            "description": "Detailed Cambridge rubric bands evaluation and institutional grade"
+          },
+          "feedback": {
+            "$ref": "#/components/schemas/PedagogicalFeedback",
+            "description": "Pedagogical feedback including strengths, improvements and actionable tips"
+          },
           "ai_detection": {
             "$ref": "#/components/schemas/AIDetectionResult",
             "description": "AI text authorship evaluation result"
@@ -266,6 +315,8 @@
           "submission_id",
           "word_count",
           "exemplar_model",
+          "rubric_evaluation",
+          "feedback",
           "ai_detection",
           "execution_time_seconds"
         ],
@@ -387,6 +438,103 @@
           "explanation"
         ],
         "title": "MistakeAnnotation"
+      },
+      "PedagogicalFeedback": {
+        "properties": {
+          "overall_feedback": {
+            "type": "string",
+            "title": "Overall Feedback",
+            "description": "Overall qualitative assessment summary in Spanish"
+          },
+          "strengths": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Strengths",
+            "description": "Key strengths observed in the writing (2 to 4 points)"
+          },
+          "areas_for_improvement": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Areas For Improvement",
+            "description": "Priority areas requiring correction and practice (2 to 4 points)"
+          },
+          "actionable_tips": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Actionable Tips",
+            "description": "Actionable tips for future writing assignments (exactly 3 items)"
+          }
+        },
+        "type": "object",
+        "required": [
+          "overall_feedback",
+          "strengths",
+          "areas_for_improvement",
+          "actionable_tips"
+        ],
+        "title": "PedagogicalFeedback"
+      },
+      "RubricEvaluation": {
+        "properties": {
+          "criteria": {
+            "items": {
+              "$ref": "#/components/schemas/CriterionEvaluation"
+            },
+            "type": "array",
+            "title": "Criteria",
+            "description": "Evaluation across the 4 Cambridge criteria"
+          },
+          "raw_score": {
+            "type": "number",
+            "maximum": 20.0,
+            "minimum": 0.0,
+            "title": "Raw Score",
+            "description": "Total raw score sum across criteria (0 to 20)"
+          },
+          "max_raw_score": {
+            "type": "number",
+            "title": "Max Raw Score",
+            "description": "Maximum raw score possible",
+            "default": 20.0
+          },
+          "institutional_score": {
+            "type": "number",
+            "maximum": 10.0,
+            "minimum": 0.0,
+            "title": "Institutional Score",
+            "description": "Calculated internal grade mapped to a 0.0 - 10.0 scale"
+          },
+          "length_penalty": {
+            "type": "boolean",
+            "title": "Length Penalty",
+            "description": "Flag indicating if length penalty was applied",
+            "default": false
+          },
+          "word_count_status": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "TOO_SHORT",
+              "TOO_LONG"
+            ],
+            "title": "Word Count Status",
+            "description": "Assessment of word length relative to required bounds",
+            "default": "NORMAL"
+          }
+        },
+        "type": "object",
+        "required": [
+          "criteria",
+          "raw_score",
+          "institutional_score"
+        ],
+        "title": "RubricEvaluation"
       },
       "ValidationError": {
         "properties": {

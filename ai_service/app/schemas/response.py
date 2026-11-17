@@ -51,6 +51,88 @@ class AIDetectionResult(BaseModel):
     )
 
 
+class CriterionEvaluation(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str = Field(
+        ...,
+        description="Assessment criterion (Content, Communicative Achievement, Organisation, Language)",
+    )
+    score: float = Field(
+        ...,
+        ge=0.0,
+        le=5.0,
+        description="Assigned band score from 0.0 to 5.0",
+    )
+    max_score: float = Field(
+        default=5.0,
+        ge=1.0,
+        description="Maximum attainable band score",
+    )
+    band_descriptor: str = Field(
+        ...,
+        description="Official descriptor matching the assigned band",
+    )
+    justification: str = Field(
+        ...,
+        description="Detailed pedagogical justification citing textual evidence",
+    )
+
+
+class RubricEvaluation(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    criteria: list[CriterionEvaluation] = Field(
+        ...,
+        description="Evaluation across the 4 Cambridge criteria",
+    )
+    raw_score: float = Field(
+        ...,
+        ge=0.0,
+        le=20.0,
+        description="Total raw score sum across criteria (0 to 20)",
+    )
+    max_raw_score: float = Field(
+        default=20.0,
+        description="Maximum raw score possible",
+    )
+    institutional_score: float = Field(
+        ...,
+        ge=0.0,
+        le=10.0,
+        description="Calculated internal grade mapped to a 0.0 - 10.0 scale",
+    )
+    length_penalty: bool = Field(
+        default=False,
+        description="Flag indicating if length penalty was applied",
+    )
+    word_count_status: Literal["NORMAL", "TOO_SHORT", "TOO_LONG"] = Field(
+        default="NORMAL",
+        description="Assessment of word length relative to required bounds",
+    )
+
+
+class PedagogicalFeedback(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    overall_feedback: str = Field(
+        ...,
+        description="Overall qualitative assessment summary in Spanish",
+    )
+    strengths: list[str] = Field(
+        ...,
+        description="Key strengths observed in the writing (2 to 4 points)",
+    )
+    areas_for_improvement: list[str] = Field(
+        ...,
+        description="Priority areas requiring correction and practice (2 to 4 points)",
+    )
+    actionable_tips: list[str] = Field(
+        ...,
+        description="Actionable tips for future writing assignments (exactly 3 items)",
+    )
+
+
 class EvaluationResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -67,6 +149,14 @@ class EvaluationResponse(BaseModel):
     exemplar_model: str = Field(
         ...,
         description="Band 5 exemplary rewritten version of the text",
+    )
+    rubric_evaluation: RubricEvaluation = Field(
+        ...,
+        description="Detailed Cambridge rubric bands evaluation and institutional grade",
+    )
+    feedback: PedagogicalFeedback = Field(
+        ...,
+        description="Pedagogical feedback including strengths, improvements and actionable tips",
     )
     ai_detection: AIDetectionResult = Field(
         ...,

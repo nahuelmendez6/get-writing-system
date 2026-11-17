@@ -7,6 +7,8 @@ from app.core.logging import logger
 from app.graph.nodes.ai_detector import ai_detector_node
 from app.graph.nodes.context_prep import context_prep_node
 from app.graph.nodes.exemplar_gen import exemplar_gen_node
+from app.graph.nodes.feedback_gen import feedback_gen_node
+from app.graph.nodes.rubric_eval import rubric_eval_node
 from app.graph.nodes.validator import validator_node
 from app.graph.nodes.writing_analysis import writing_analysis_node
 from app.graph.state import EvaluationState
@@ -15,6 +17,8 @@ from app.schemas.response import (
     AIDetectionResult,
     EvaluationResponse,
     MistakeAnnotation,
+    PedagogicalFeedback,
+    RubricEvaluation,
 )
 
 
@@ -27,13 +31,15 @@ def should_continue_or_retry(state: EvaluationState | dict[str, Any]) -> str:
 
 
 def build_evaluation_graph() -> Any:
-    """Construct and compile the 5-node LangGraph evaluation StateGraph."""
+    """Construct and compile the 7-node LangGraph evaluation StateGraph."""
     workflow = StateGraph(EvaluationState)
 
     # 1. Add nodes
     workflow.add_node("context_prep", context_prep_node)
     workflow.add_node("writing_analysis", writing_analysis_node)
     workflow.add_node("exemplar_gen", exemplar_gen_node)
+    workflow.add_node("rubric_eval", rubric_eval_node)
+    workflow.add_node("feedback_gen", feedback_gen_node)
     workflow.add_node("ai_detector", ai_detector_node)
     workflow.add_node("validator", validator_node)
 
@@ -41,7 +47,9 @@ def build_evaluation_graph() -> Any:
     workflow.add_edge(START, "context_prep")
     workflow.add_edge("context_prep", "writing_analysis")
     workflow.add_edge("writing_analysis", "exemplar_gen")
-    workflow.add_edge("exemplar_gen", "ai_detector")
+    workflow.add_edge("exemplar_gen", "rubric_eval")
+    workflow.add_edge("rubric_eval", "feedback_gen")
+    workflow.add_edge("feedback_gen", "ai_detector")
     workflow.add_edge("ai_detector", "validator")
 
     # 3. Add conditional edge for validation and retry loop
@@ -92,12 +100,18 @@ async def run_evaluation_pipeline(payload: EvaluationRequest) -> EvaluationRespo
         MistakeAnnotation.model_validate(m) for m in final_state.get("mistakes", [])
     ]
     ai_det = AIDetectionResult.model_validate(final_state.get("ai_detection", {}))
+    rubric_eval = RubricEvaluation.model_validate(
+        final_state.get("rubric_evaluation", {})
+    )
+    feedback = PedagogicalFeedback.model_validate(final_state.get("feedback", {}))
 
     return EvaluationResponse(
         submission_id=final_state.get("submission_id", payload.submission_id),
         word_count=final_state.get("word_count", 0),
         mistakes=mistakes,
         exemplar_model=final_state.get("exemplar_model", ""),
+        rubric_evaluation=rubric_eval,
+        feedback=feedback,
         ai_detection=ai_det,
         status="SUCCESS",
         execution_time_seconds=execution_duration,

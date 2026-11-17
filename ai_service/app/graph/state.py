@@ -16,6 +16,8 @@ class EvaluationState(TypedDict, total=False):
     context_guidelines: str
     mistakes: list[dict[str, Any]]
     exemplar_model: str
+    rubric_evaluation: dict[str, Any]
+    feedback: dict[str, Any]
     ai_detection: dict[str, Any]
     validation_passed: bool
     retry_count: int

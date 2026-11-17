@@ -1,8 +1,8 @@
 # Backlog Execution Status — Get Idiomas AI Writing System
 
 **Strategy**: AI-First (Engine & Benchmark prior to UI/Commercial tiers)  
-**Last Updated**: 2026-11-12  
-**Overall Completion**: 10% (2 / 21 tasks)
+**Last Updated**: 2026-11-17  
+**Overall Completion**: 14% (3 / 21 tasks)
 
 ---
 
@@ -13,7 +13,7 @@
 | :--- | :--- | :--- | :--- | :--- |
 | `TASK-1.1` | Core Backend | `BE-01 / BE-02` | `COMPLETED` | Committer |
 | `TASK-1.2` | Servicio de IA y Grafo | `AI-01 / AI-02` | `COMPLETED` | Committer |
-| `TASK-1.3` | Evaluación y Rúbricas Base | `AI-03 / BE-06` | `PENDING` | - |
+| `TASK-1.3` | Evaluación y Rúbricas Base | `AI-03 / BE-06` | `COMPLETED` | Committer |
 
 ---
 
