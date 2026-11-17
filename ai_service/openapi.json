@@ -182,9 +182,21 @@
           },
           "student_text": {
             "type": "string",
-            "minLength": 1,
             "title": "Student Text",
-            "description": "Student written submission text"
+            "description": "Student written submission text (can be empty if image_base64 is provided)",
+            "default": ""
+          },
+          "image_base64": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Base64",
+            "description": "Optional Base64 encoded photograph of handwritten writing for multimodal OCR"
           },
           "task_prompt": {
             "type": "string",
@@ -248,7 +260,6 @@
         "type": "object",
         "required": [
           "submission_id",
-          "student_text",
           "task_prompt",
           "level",
           "text_type"
@@ -292,6 +303,24 @@
           "ai_detection": {
             "$ref": "#/components/schemas/AIDetectionResult",
             "description": "AI text authorship evaluation result"
+          },
+          "ocr_applied": {
+            "type": "boolean",
+            "title": "Ocr Applied",
+            "description": "Whether multimodal OCR transcription was executed on an image",
+            "default": false
+          },
+          "extracted_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Text",
+            "description": "Literal transcribed text if an image submission was provided"
           },
           "status": {
             "type": "string",

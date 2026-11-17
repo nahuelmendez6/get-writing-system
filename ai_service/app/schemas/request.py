@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class EvaluationRequest(BaseModel):
@@ -11,9 +11,12 @@ class EvaluationRequest(BaseModel):
         description="UUID or unique identifier of the student submission",
     )
     student_text: str = Field(
-        ...,
-        min_length=1,
-        description="Student written submission text",
+        default="",
+        description="Student written submission text (can be empty if image_base64 is provided)",
+    )
+    image_base64: str | None = Field(
+        default=None,
+        description="Optional Base64 encoded photograph of handwritten writing for multimodal OCR",
     )
     task_prompt: str = Field(
         ...,
@@ -37,3 +40,13 @@ class EvaluationRequest(BaseModel):
         ge=1,
         description="Maximum expected word count",
     )
+
+    @model_validator(mode="after")
+    def validate_content_presence(self) -> "EvaluationRequest":
+        has_text = bool(self.student_text and self.student_text.strip())
+        has_image = bool(self.image_base64 and self.image_base64.strip())
+        if not has_text and not has_image:
+            raise ValueError(
+                "Either student_text or image_base64 must be provided and non-empty."
+            )
+        return self

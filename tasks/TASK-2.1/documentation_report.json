@@ -1,0 +1,17 @@
+{
+  "$schema": "../../.agent-system/contracts/documentation_report.schema.json",
+  "task_id": "TASK-2.1",
+  "documenter": "Documenter Agent",
+  "date": "2026-11-17",
+  "status": "COMPLETED",
+  "updated_docs": [
+    "docs/adr/ADR-004-multimodal-literal-ocr-and-benchmark-harness.md",
+    "CHANGELOG.md",
+    "ai_service/openapi.json"
+  ],
+  "openapi_synchronized": true,
+  "changelog_updated": true,
+  "adr_created": true,
+  "adr_id": "ADR-004",
+  "summary": "Documentación técnica integral para TASK-2.1: creación de ADR-004 sobre OCR multimodal literal y arnés de pruebas, actualización del CHANGELOG.md y sincronización del esquema OpenAPI de ai_service."
+}

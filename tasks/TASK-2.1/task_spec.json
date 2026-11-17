@@ -1,0 +1,59 @@
+{
+  "$schema": "../../.agent-system/contracts/task_spec.schema.json",
+  "task_id": "TASK-2.1",
+  "backlog_ref": "QA-01 / AI-04 Lite",
+  "title": "Benchmark de IA y Arnés Multimodal OCR para Manuscritos",
+  "target_module": "ai_service",
+  "related_requirements": [
+    "RF-06",
+    "RF-07",
+    "RF-08",
+    "RF-16"
+  ],
+  "summary": "Implementación del arnés de pruebas y benchmark de corrección con soporte nativo multimodal para redacciones manuscritas fotografiadas y textos digitales. Incluye módulo de sanitización EXIF por privacidad RGPD, nodo LangGraph de transcripción OCR estrictamente literal (sin autocorregir errores del alumno), estructura de dataset extensible para fotos de exámenes, herramienta CLI interactiva para probar redacciones individuales o lotes completos, motor de métricas estadísticas (MAE <= 0.5 y concordancia +-1 banda >= 80%) y exportación de reportes.",
+  "status": "PLANNED",
+  "database_changes": {
+    "migration_required": false,
+    "tables_affected": [],
+    "breaking_changes": false
+  },
+  "api_endpoints": [],
+  "acceptance_criteria": [
+    {
+      "scenario": "Sanitización de Imagen y Eliminación de EXIF",
+      "given": "Una imagen JPEG que contiene metadatos EXIF con coordenadas GPS y modelo de cámara.",
+      "when": "Se procesa a través del módulo de sanitización de imágenes.",
+      "then": "La imagen resultante carece totalmente de etiquetas EXIF privadas, preserva calidad visual y extrae dimensiones válidas."
+    },
+    {
+      "scenario": "Transcripción OCR Literal sin Autocorrección",
+      "given": "Una fotografía de redacción manuscrita con errores ortográficos y gramaticales del alumno.",
+      "when": "Se ejecuta el nodo ocr_transcription_node.",
+      "then": "El texto transcrito preserva fielmente los errores exactos del alumno sin corregirlos automáticamente y marca ocr_applied como true."
+    },
+    {
+      "scenario": "Corrección End-to-End a Partir de una Fotografía",
+      "given": "Una fotografía de manuscrito procesada por el pipeline de evaluación.",
+      "when": "Se invoca el pipeline completo evaluate_writing.",
+      "then": "El sistema transcribe la foto, detecta los errores ortográficos y gramaticales sobre la transcripción literal, asigna bandas Cambridge (0 a 5) y genera feedback pedagógico estructurado en español."
+    },
+    {
+      "scenario": "Ejecución por Consola de una Redacción en Foto",
+      "given": "El comando CLI ejecutado con --image <ruta_foto> --level B2.",
+      "when": "El ejecutor procesa la imagen.",
+      "then": "La consola muestra en tabla la transcripción obtenida, la lista de errores encontrados, las 4 bandas evaluadas y el feedback formativo."
+    },
+    {
+      "scenario": "Cumplimiento de Umbrales de Benchmark (RF-08)",
+      "given": "El dataset extensible con redacciones de referencia humanas.",
+      "when": "Se ejecuta el runner masivo de benchmark.",
+      "then": "El MAE global es <= 0.5 bandas y la tasa de coincidencia en +-1 banda es >= 80%, resultando en veredicto APPROVED."
+    }
+  ],
+  "security_considerations": [
+    "Eliminación estricta de metadatos EXIF (geolocalización GPS, timestamp, modelo de dispositivo) en todas las imágenes procesadas.",
+    "Zero Data Retention (ZDR) garantizado en llamadas multimodales a proveedores de visión LLM.",
+    "Anonimización de PII detectado en transcripciones antes de la evaluación y generación de modelos.",
+    "Validación de tipos MIME y límites de tamaño de imagen para prevenir ataques de denegación de servicio."
+  ]
+}

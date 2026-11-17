@@ -8,6 +8,7 @@ from app.graph.nodes.ai_detector import ai_detector_node
 from app.graph.nodes.context_prep import context_prep_node
 from app.graph.nodes.exemplar_gen import exemplar_gen_node
 from app.graph.nodes.feedback_gen import feedback_gen_node
+from app.graph.nodes.ocr_transcription import ocr_transcription_node
 from app.graph.nodes.rubric_eval import rubric_eval_node
 from app.graph.nodes.validator import validator_node
 from app.graph.nodes.writing_analysis import writing_analysis_node
@@ -31,10 +32,11 @@ def should_continue_or_retry(state: EvaluationState | dict[str, Any]) -> str:
 
 
 def build_evaluation_graph() -> Any:
-    """Construct and compile the 7-node LangGraph evaluation StateGraph."""
+    """Construct and compile the 8-node LangGraph evaluation StateGraph."""
     workflow = StateGraph(EvaluationState)
 
     # 1. Add nodes
+    workflow.add_node("ocr_transcription", ocr_transcription_node)
     workflow.add_node("context_prep", context_prep_node)
     workflow.add_node("writing_analysis", writing_analysis_node)
     workflow.add_node("exemplar_gen", exemplar_gen_node)
@@ -44,7 +46,8 @@ def build_evaluation_graph() -> Any:
     workflow.add_node("validator", validator_node)
 
     # 2. Add sequential edges
-    workflow.add_edge(START, "context_prep")
+    workflow.add_edge(START, "ocr_transcription")
+    workflow.add_edge("ocr_transcription", "context_prep")
     workflow.add_edge("context_prep", "writing_analysis")
     workflow.add_edge("writing_analysis", "exemplar_gen")
     workflow.add_edge("exemplar_gen", "rubric_eval")
@@ -75,6 +78,7 @@ async def run_evaluation_pipeline(payload: EvaluationRequest) -> EvaluationRespo
     initial_state: EvaluationState = {
         "submission_id": payload.submission_id,
         "student_text": payload.student_text,
+        "image_base64": payload.image_base64,
         "task_prompt": payload.task_prompt,
         "level": payload.level,
         "text_type": payload.text_type,
@@ -85,10 +89,11 @@ async def run_evaluation_pipeline(payload: EvaluationRequest) -> EvaluationRespo
     }
 
     logger.info(
-        "Starting LangGraph evaluation pipeline for submission %s (%s - %s)",
+        "Starting LangGraph evaluation pipeline for submission %s (%s - %s, has_image=%s)",
         payload.submission_id,
         payload.level,
         payload.text_type,
+        bool(payload.image_base64),
     )
 
     final_state: EvaluationState = await evaluation_graph.ainvoke(initial_state)
@@ -113,6 +118,8 @@ async def run_evaluation_pipeline(payload: EvaluationRequest) -> EvaluationRespo
         rubric_evaluation=rubric_eval,
         feedback=feedback,
         ai_detection=ai_det,
+        ocr_applied=final_state.get("ocr_applied", False),
+        extracted_text=final_state.get("extracted_text"),
         status="SUCCESS",
         execution_time_seconds=execution_duration,
     )

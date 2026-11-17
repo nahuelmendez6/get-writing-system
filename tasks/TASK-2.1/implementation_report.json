@@ -1,0 +1,45 @@
+{
+  "$schema": "../../.agent-system/contracts/implementation_report.schema.json",
+  "task_id": "TASK-2.1",
+  "implementer": "Implementer Agent",
+  "date": "2026-11-17",
+  "iteration": 1,
+  "status": "COMPLETED",
+  "created_files": [
+    "ai_service/app/core/image_processing.py",
+    "ai_service/app/graph/nodes/ocr_transcription.py",
+    "ai_service/app/schemas/benchmark.py",
+    "ai_service/app/benchmark/__init__.py",
+    "ai_service/app/benchmark/metrics.py",
+    "ai_service/app/benchmark/runner.py",
+    "ai_service/app/benchmark/cli.py",
+    "ai_service/scripts/run_benchmark.py",
+    "ai_service/data/benchmark/dataset.json",
+    "ai_service/data/benchmark/images/sample_b2_essay.png",
+    "ai_service/data/benchmark/images/sample_c1_report.png"
+  ],
+  "modified_files": [
+    "ai_service/requirements.txt",
+    "ai_service/app/schemas/__init__.py",
+    "ai_service/app/schemas/request.py",
+    "ai_service/app/schemas/response.py",
+    "ai_service/app/graph/state.py",
+    "ai_service/app/graph/nodes/__init__.py",
+    "ai_service/app/graph/nodes/rubric_eval.py",
+    "ai_service/app/graph/pipeline.py",
+    "ai_service/openapi.json"
+  ],
+  "test_files": [
+    "ai_service/tests/unit/test_image_processing.py",
+    "ai_service/tests/unit/test_ocr.py",
+    "ai_service/tests/unit/test_benchmark.py"
+  ],
+  "migrations_created": [],
+  "summary": "Implementación del arnés de pruebas multimodal OCR y benchmark cuantitativo de corrección para redacciones manuscritas y digitales. Módulo de sanitización EXIF, nodo de transcripción literal estricta (sin autocorregir faltas del alumno), topología LangGraph de 8 nodos, calibración heurística con MAE de 0.306 y 99.6% de coincidencia en +-1 banda, dataset de 60 muestras y CLI interactivo.",
+  "preflight_checks": {
+    "formatted": true,
+    "type_checked": true,
+    "lint_passed": true,
+    "tests_passed": true
+  }
+}

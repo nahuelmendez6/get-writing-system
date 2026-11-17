@@ -1,5 +1,12 @@
 """Pydantic schemas for ai_service."""
 
+from app.schemas.benchmark import (
+    BenchmarkCriterionScores,
+    BenchmarkEvaluationResult,
+    BenchmarkReportSummary,
+    BenchmarkSample,
+    CriterionMetricSummary,
+)
 from app.schemas.health import HealthCheckResponse
 from app.schemas.request import EvaluationRequest
 from app.schemas.response import (
@@ -20,4 +27,9 @@ __all__ = [
     "MistakeAnnotation",
     "PedagogicalFeedback",
     "RubricEvaluation",
+    "BenchmarkCriterionScores",
+    "BenchmarkSample",
+    "BenchmarkEvaluationResult",
+    "CriterionMetricSummary",
+    "BenchmarkReportSummary",
 ]

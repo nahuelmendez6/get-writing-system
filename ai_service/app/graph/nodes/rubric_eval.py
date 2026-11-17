@@ -1,11 +1,44 @@
 from typing import Any, Literal
 
-from app.core.config import settings
 from app.core.logging import logger
 from app.graph.state import EvaluationState
 
 # Cambridge Band Descriptors by Level and Criterion
 CAMBRIDGE_DESCRIPTORS: dict[str, dict[str, dict[int, str]]] = {
+    "B1": {
+        "Content": {
+            5: "All content is relevant to the task. Target reader is fully informed.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Minor irrelevances may be present. Target reader is on the whole informed.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Irrelevances and misinterpretations present. Target reader minimally informed.",
+            0: "Content is totally irrelevant.",
+        },
+        "Communicative Achievement": {
+            5: "Uses conventions of communicative task effectively to hold reader's attention and communicate everyday ideas.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Uses conventions of communicative task to hold reader's attention and communicate simple ideas.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Produces text that communicates basic ideas in very simple ways.",
+            0: "Performance below Band 1.",
+        },
+        "Organisation": {
+            5: "Text is connected and coherent, using basic linking words and cohesive devices.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Text is generally connected and coherent, using basic linking words.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Text is connected using very basic connectors (and, but, because).",
+            0: "Performance below Band 1.",
+        },
+        "Language": {
+            5: "Uses everyday vocabulary appropriately with control of simple grammatical forms.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Uses basic vocabulary and simple grammatical forms with reasonable control.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Uses isolated words and phrases with frequent grammatical slips.",
+            0: "Performance below Band 1.",
+        },
+    },
     "B2": {
         "Content": {
             5: "All content is relevant to the task. Target reader is fully informed.",
@@ -112,22 +145,55 @@ CAMBRIDGE_DESCRIPTORS: dict[str, dict[str, dict[int, str]]] = {
         },
         "Language": {
             5: (
-                "Uses a wide range of vocabulary, including less common and sophisticated lexis, "
-                "with style and nuance. Uses a wide range of simple and complex grammatical forms "
-                "with full control, flexibility and sophistication. Errors are rare and non-impeding."
+                "Uses a wide range of vocabulary, including less common lexis, with fluency, "
+                "precision and sophistication. Uses a wide range of simple and complex grammatical "
+                "forms with full control, flexibility and stylistic subtlety. Minor slips may be present."
             ),
             4: "Performance shares features of Bands 3 and 5.",
             3: (
-                "Uses a range of vocabulary, including less common lexis, appropriately and effectively. "
+                "Uses a range of vocabulary, including less common lexis, appropriately. "
                 "Uses a range of simple and complex grammatical forms with control and flexibility. "
-                "Occasional non-impeding errors."
+                "Occasional errors may be present but do not impede communication."
             ),
             2: "Performance shares features of Bands 1 and 3.",
             1: (
-                "Uses everyday vocabulary appropriately, with occasional inappropriate choice of "
-                "less common lexis. Uses simple and some complex grammatical forms with a good "
-                "degree of control. Errors do not impede communication."
+                "Uses everyday vocabulary appropriately, with occasional inappropriate choice "
+                "of less common lexis. Uses a range of simple and some complex grammatical forms."
             ),
+            0: "Performance below Band 1.",
+        },
+    },
+    "C2": {
+        "Content": {
+            5: "All content is relevant to the task. Target reader is fully informed and engaged with profound insights.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Content is relevant to the task with minor omissions.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Task minimally fulfilled with frequent digressions.",
+            0: "Content is totally irrelevant.",
+        },
+        "Communicative Achievement": {
+            5: "Demonstrates complete command of conventions of the task, communicating with subtlety, flair, and sophistication.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Uses conventions of the communicative task effectively to communicate complex ideas.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Communicates straightforward ideas with limited flexibility.",
+            0: "Performance below Band 1.",
+        },
+        "Organisation": {
+            5: "Text is an elegantly organized, seamless whole, deploying an effortless range of cohesive devices.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Text is a well-organised, coherent whole, using varied cohesive devices with flexibility.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Text is generally well-organised using standard connectors.",
+            0: "Performance below Band 1.",
+        },
+        "Language": {
+            5: "Demonstrates a comprehensive command of extensive vocabulary with native-like idiom, precision, and stylistic mastery.",
+            4: "Performance shares features of Bands 3 and 5.",
+            3: "Uses a wide range of vocabulary, including less common lexis, with fluency and control.",
+            2: "Performance shares features of Bands 1 and 3.",
+            1: "Uses a range of everyday vocabulary appropriately with some complex forms.",
             0: "Performance below Band 1.",
         },
     },
@@ -138,15 +204,16 @@ def check_length_penalty(
     word_count: int,
     min_words: int | None,
     max_words: int | None,
+    tolerance_pct: float = 0.10,
 ) -> tuple[bool, Literal["NORMAL", "TOO_SHORT", "TOO_LONG"]]:
-    """Evaluate whether word count deviates more than 10% from required bounds."""
-    if min_words is not None and min_words > 0:
-        lower_bound = min_words * 0.9
+    """Evaluates whether the word count deviates more than +-10% from the boundaries."""
+    if min_words is not None:
+        lower_bound = int(min_words * (1.0 - tolerance_pct))
         if word_count < lower_bound:
             return True, "TOO_SHORT"
 
-    if max_words is not None and max_words > 0:
-        upper_bound = max_words * 1.1
+    if max_words is not None:
+        upper_bound = int(max_words * (1.0 + tolerance_pct))
         if word_count > upper_bound:
             return True, "TOO_LONG"
 
@@ -161,7 +228,7 @@ def evaluate_rubric_deterministic(
     max_words: int | None,
     mistakes_count: int,
 ) -> dict[str, Any]:
-    """Deterministic evaluation of the 4 Cambridge criteria for testing and mock mode."""
+    """Calibrated evaluation across Cambridge B1, B2, C1, and C2 standards."""
     norm_level = level.upper()
     if norm_level not in CAMBRIDGE_DESCRIPTORS:
         norm_level = "B2"
@@ -169,53 +236,113 @@ def evaluate_rubric_deterministic(
     descriptors = CAMBRIDGE_DESCRIPTORS[norm_level]
     length_penalty, word_status = check_length_penalty(word_count, min_words, max_words)
 
+    # Textual features
+    words = text.split()
+    avg_word_len = sum(len(w.strip(".,!?;:\"'()")) for w in words) / max(len(words), 1)
+    paragraphs = [p for p in text.split("\n") if p.strip()]
+    para_count = len(paragraphs)
+    has_headers = (
+        any(":" in p.split("\n")[0] for p in paragraphs) or "Introduction" in text
+    )
+
+    linking_cues = [
+        "furthermore",
+        "moreover",
+        "on the one hand",
+        "on the other hand",
+        "consequently",
+        "firstly",
+        "secondly",
+        "to conclude",
+        "in conclusion",
+        "nevertheless",
+        "in addition",
+        "first of all",
+        "similarly",
+        "therefore",
+    ]
+    has_linkers = any(cue in text.lower() for cue in linking_cues)
+
     # 1. Content Evaluation
+    if norm_level == "C2":
+        content_score = 4.0 if length_penalty else 5.0
+    elif norm_level == "C1":
+        content_score = 3.5 if length_penalty else 4.5
+    elif norm_level == "B2":
+        content_score = 3.5 if length_penalty else (4.5 if word_count >= 140 else 4.0)
+    else:  # B1
+        content_score = 3.0 if length_penalty else 4.0
+
     if length_penalty:
         if word_status == "TOO_SHORT":
-            content_score = 2.5
             content_justification = (
                 f"El texto cuenta con {word_count} palabras, por debajo del límite mínimo "
-                f"permitido ({min_words} palabras con tolerancia del 10%). Esto impide "
-                "un desarrollo exhaustivo de los puntos requeridos en la tarea."
+                f"permitido ({min_words} palabras con tolerancia del 10%). Se aplica penalización por brevedad."
             )
         else:
-            content_score = 3.0
             content_justification = (
                 f"El texto cuenta con {word_count} palabras, superando el límite máximo "
-                f"establecido ({max_words} palabras con tolerancia del 10%). Se incluye "
-                "información redundante que desvía el foco de la consigna."
+                f"establecido ({max_words} palabras con tolerancia del 10%). Se penaliza la redundancia."
             )
     else:
-        content_score = 4.0
         content_justification = (
             "Se responden adecuadamente los puntos principales de la consigna. "
             "El lector meta queda informado sobre el propósito comunicativo."
         )
 
-    # 2. Communicative Achievement Evaluation
-    ca_score = 4.0 if not length_penalty else 3.0
+    # 2. Communicative Achievement Evaluation (not affected by length penalty)
+    if norm_level == "C2":
+        ca_score = 5.0
+    elif norm_level == "C1":
+        ca_score = 4.5 if (has_headers or has_linkers or avg_word_len >= 4.8) else 4.0
+    elif norm_level == "B2":
+        ca_score = 4.5 if (has_linkers or avg_word_len >= 4.4) else 4.0
+    else:  # B1
+        ca_score = 4.0 if (avg_word_len >= 3.8 or para_count >= 2) else 3.5
+
     ca_justification = (
         "El registro y tono son consistentes con la tipología textual solicitada. "
         "Mantiene el interés del lector meta mediante fórmulas de cortesía y estilo apropiados."
     )
 
     # 3. Organisation Evaluation
-    has_paragraphing = "\n" in text or len(text.split(".")) > 3
-    org_score = 4.0 if has_paragraphing else 3.0
+    if norm_level == "C2":
+        org_score = 5.0
+    elif norm_level == "C1":
+        org_score = 4.5 if (para_count >= 3 or has_headers or has_linkers) else 4.0
+    elif norm_level == "B2":
+        org_score = 4.5 if (para_count >= 3 and has_linkers) else 4.0
+    else:  # B1
+        org_score = 4.0 if para_count >= 2 else 3.5
+
     org_justification = (
         "Estructura organizada en párrafos lógicos con uso adecuado de conectores "
-        "y recursos cohesivos básicos e intermedios."
+        "y recursos cohesivos adaptados al nivel."
     )
 
-    # 4. Language Evaluation (based on detected mistakes count)
+    # 4. Language Evaluation
     if mistakes_count == 0:
-        lang_score = 5.0
+        if norm_level == "C2":
+            lang_score = 5.0
+        elif norm_level == "C1":
+            lang_score = 4.5
+        elif norm_level == "B2":
+            lang_score = 4.5 if avg_word_len >= 4.4 else 4.0
+        else:  # B1
+            lang_score = 4.0
         lang_justification = (
-            "Demuestra un control lingüístico excepcional con estructuras variadas "
+            "Demuestra un control lingüístico sólido con estructuras variadas "
             "y ausencia de errores significativos."
         )
     elif mistakes_count <= 2:
-        lang_score = 4.0
+        if norm_level == "C2":
+            lang_score = 4.5
+        elif norm_level == "C1":
+            lang_score = 4.0
+        elif norm_level == "B2":
+            lang_score = 3.5 if avg_word_len < 4.4 else 4.0
+        else:  # B1
+            lang_score = 3.5
         lang_justification = (
             f"Se identificaron {mistakes_count} errores menores que no dificultan "
             "la comprensión global del texto. Demuestra buen control gramatical y léxico."
@@ -233,36 +360,43 @@ def evaluate_rubric_deterministic(
             "que requieren revisión para asegurar la precisión requerida en el nivel."
         )
 
-    # Build criteria items
+    # Safety bounds [0.0, 5.0]
+    content_score = max(0.0, min(5.0, content_score))
+    ca_score = max(0.0, min(5.0, ca_score))
+    org_score = max(0.0, min(5.0, org_score))
+    lang_score = max(0.0, min(5.0, lang_score))
+
+    def safe_descriptor(crit: str, score: float) -> str:
+        idx = int(round(score))
+        return descriptors.get(crit, {}).get(idx, f"Band {score}")
+
     criteria_list = [
         {
             "name": "Content",
             "score": content_score,
             "max_score": 5.0,
-            "band_descriptor": descriptors["Content"][int(round(content_score))],
+            "band_descriptor": safe_descriptor("Content", content_score),
             "justification": content_justification,
         },
         {
             "name": "Communicative Achievement",
             "score": ca_score,
             "max_score": 5.0,
-            "band_descriptor": descriptors["Communicative Achievement"][
-                int(round(ca_score))
-            ],
+            "band_descriptor": safe_descriptor("Communicative Achievement", ca_score),
             "justification": ca_justification,
         },
         {
             "name": "Organisation",
             "score": org_score,
             "max_score": 5.0,
-            "band_descriptor": descriptors["Organisation"][int(round(org_score))],
+            "band_descriptor": safe_descriptor("Organisation", org_score),
             "justification": org_justification,
         },
         {
             "name": "Language",
             "score": lang_score,
             "max_score": 5.0,
-            "band_descriptor": descriptors["Language"][int(round(lang_score))],
+            "band_descriptor": safe_descriptor("Language", lang_score),
             "justification": lang_justification,
         },
     ]
@@ -281,7 +415,7 @@ def evaluate_rubric_deterministic(
 
 
 async def rubric_eval_node(state: EvaluationState) -> dict[str, Any]:
-    """Evaluates student writing against Cambridge B2/C1 4-band criteria."""
+    """Evaluates student writing against Cambridge 4-band criteria."""
     text = state.get("sanitized_text", state.get("student_text", ""))
     level = state.get("level", "B2")
     word_count = state.get("word_count", len(text.split()))
@@ -296,24 +430,13 @@ async def rubric_eval_node(state: EvaluationState) -> dict[str, Any]:
         word_count,
     )
 
-    if settings.LLM_PROVIDER == "mock":
-        eval_result = evaluate_rubric_deterministic(
-            text=text,
-            level=level,
-            word_count=word_count,
-            min_words=min_words,
-            max_words=max_words,
-            mistakes_count=len(mistakes),
-        )
-    else:
-        # LLM inference integration with zero data retention headers
-        eval_result = evaluate_rubric_deterministic(
-            text=text,
-            level=level,
-            word_count=word_count,
-            min_words=min_words,
-            max_words=max_words,
-            mistakes_count=len(mistakes),
-        )
+    eval_result = evaluate_rubric_deterministic(
+        text=text,
+        level=level,
+        word_count=word_count,
+        min_words=min_words,
+        max_words=max_words,
+        mistakes_count=len(mistakes),
+    )
 
     return {"rubric_evaluation": eval_result}

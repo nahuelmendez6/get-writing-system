@@ -2,7 +2,7 @@
 
 **Strategy**: AI-First (Engine & Benchmark prior to UI/Commercial tiers)  
 **Last Updated**: 2026-11-17  
-**Overall Completion**: 14% (3 / 21 tasks)
+**Overall Completion**: 19% (4 / 21 tasks)
 
 ---
 
@@ -22,7 +22,7 @@
 
 | ID | Tarea | Componentes | Estado | Responsable |
 | :--- | :--- | :--- | :--- | :--- |
-| `TASK-2.1` | Benchmark de IA (MAE $\le 0.5$, 80% acierto) | `QA-01` | `PENDING` | - |
+| `TASK-2.1` | Benchmark de IA (MAE $\le 0.5$, 80% acierto) | `QA-01 / AI-04` | `COMPLETED` | Committer |
 | `TASK-2.2` | Privacidad y Zero Data Retention (ZDR) | `SEC-01` | `PENDING` | - |
 | `TASK-2.3` | Control de Consumo y Alertas de Tokens | `BE-14` | `PENDING` | - |
 

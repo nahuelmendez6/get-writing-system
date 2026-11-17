@@ -6,6 +6,11 @@ class EvaluationState(TypedDict, total=False):
 
     submission_id: str
     student_text: str
+    image_base64: str | None
+    image_format: str | None
+    extracted_text: str | None
+    ocr_applied: bool
+    ocr_confidence: float | None
     sanitized_text: str
     task_prompt: str
     level: str

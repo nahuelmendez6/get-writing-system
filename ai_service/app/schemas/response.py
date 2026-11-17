@@ -162,6 +162,14 @@ class EvaluationResponse(BaseModel):
         ...,
         description="AI text authorship evaluation result",
     )
+    ocr_applied: bool = Field(
+        default=False,
+        description="Whether multimodal OCR transcription was executed on an image",
+    )
+    extracted_text: str | None = Field(
+        default=None,
+        description="Literal transcribed text if an image submission was provided",
+    )
     status: Literal["SUCCESS", "FAILED"] = Field(
         default="SUCCESS",
         description="Overall pipeline execution status",

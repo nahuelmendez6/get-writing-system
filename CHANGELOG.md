@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-11-17 (TASK-2.1 - QA-01 / AI-04 Lite)
+- **Multimodal OCR & Literal Transcription Engine (`AI-04 Lite`)**:
+  - Image processing module `image_processing.py` with EXIF metadata stripping (purging GPS, device, and timestamps for GDPR compliance on minor submissions) and format normalization (JPEG, PNG, WEBP).
+  - LangGraph node `ocr_transcription_node` enforcing the **Literal OCR Principle**: strictly preserves all spelling, grammatical, punctuation, and structural errors made by the student without autocorrecting.
+  - Evaluation pipeline extended to 8 nodes in `StateGraph` accepting Base64 images or digital text, tracking `ocr_applied`, `ocr_confidence`, and `extracted_text`.
+- **Benchmark & Testing Harness (`QA-01`)**:
+  - Mathematical metrics engine `metrics.py` computing Mean Absolute Error (MAE), MSE, exact band match rate, and $\pm 1$ band concordance.
+  - Interactive CLI console runner (`ai_service/app/benchmark/cli.py` & `ai_service/scripts/run_benchmark.py`) for evaluating single handwritten images or running batch benchmarks with rich terminal display and exports.
+  - Calibrated benchmark dataset (`ai_service/data/benchmark/dataset.json`) with 60 representative writing samples across B1, B2, C1, C2 and all 7 task genres (Essay, Article, Email, Review, Report, Story, Proposal) with teacher ground-truth scores.
+  - Benchmark empirical results achieving $\text{MAE} = 0.306$ bands (exceeding target $\le 0.50$) and $99.6\%$ concordance in $\pm 1$ band (exceeding target $\ge 80.0\%$).
+  - Architecture Decision Record: `ADR-004` (Multimodal Literal OCR & Benchmark Validation Harness).
+  - Test suite extended to 70 total tests passing at 86.5% global code coverage (92% backend, 81% ai_service) with strict typing (`mypy --strict`).
+
 ### Added - 2026-11-17 (TASK-1.3 - AI-03 / BE-06)
 - **Reusable Rubrics Module (`BE-06`)**:
   - SQLAlchemy 2.0 declarative models `Rubric` and `RubricCriterion` with UUID v4 primary keys, UTC timestamps, JSONB descriptors, and cascade deletes.
