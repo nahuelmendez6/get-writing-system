@@ -1,0 +1,29 @@
+{
+  "$schema": "../../.agent-system/contracts/commit_report.schema.json",
+  "task_id": "TASK-2.1",
+  "committer": "Committer Agent",
+  "date": "2026-11-17",
+  "commit_hash": "75eb77d",
+  "commit_type": "feat",
+  "scope": "benchmark",
+  "message": "feat(benchmark): implement multimodal ocr literal transcription and benchmark harness",
+  "files_committed": [
+    "ai_service/app/benchmark/__init__.py",
+    "ai_service/app/benchmark/cli.py",
+    "ai_service/app/benchmark/metrics.py",
+    "ai_service/app/benchmark/runner.py",
+    "ai_service/app/core/image_processing.py",
+    "ai_service/app/graph/nodes/ocr_transcription.py",
+    "ai_service/app/schemas/benchmark.py",
+    "ai_service/data/benchmark/dataset.json",
+    "ai_service/data/benchmark/images/sample_b2_essay.png",
+    "ai_service/data/benchmark/images/sample_c1_report.png",
+    "ai_service/scripts/run_benchmark.py",
+    "ai_service/tests/unit/test_benchmark.py",
+    "ai_service/tests/unit/test_image_processing.py",
+    "ai_service/tests/unit/test_ocr.py",
+    "docs/adr/ADR-004-multimodal-literal-ocr-and-benchmark-harness.md",
+    "CHANGELOG.md"
+  ],
+  "verification_passed": true
+}

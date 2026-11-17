@@ -10,7 +10,7 @@
 ## 2. Commit Information
 - **Commit Type**: `feat`
 - **Scope**: `benchmark`
-- **Commit Hash**: `PENDING`
+- **Commit Hash**: `75eb77d`
 - **Header**: `feat(benchmark): implement multimodal ocr literal transcription and benchmark harness`
 - **Body**:
   ```
