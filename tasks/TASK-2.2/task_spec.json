@@ -1,0 +1,71 @@
+{
+  "$schema": "../../.agent-system/contracts/task_spec.schema.json",
+  "task_id": "TASK-2.2",
+  "backlog_ref": "SEC-01",
+  "title": "Privacidad y Zero Data Retention (ZDR)",
+  "target_module": "ai_service",
+  "related_requirements": [
+    "RF-03"
+  ],
+  "summary": "Configuración estricta de Zero Data Retention (ZDR) en la API del LLM, anonimización exhaustiva de textos (PII: nombres, emails, teléfonos, DNI/NIE/Pasaporte, escuelas, direcciones) antes del envío y validación de políticas RGPD para menores de edad según el Art. 8 del RGPD y Art. 7 de la LOPDGDD española con soporte para Derecho al Olvido.",
+  "status": "PLANNED",
+  "database_changes": {
+    "migration_required": false,
+    "tables_affected": [],
+    "breaking_changes": false
+  },
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/privacy/sanitize",
+      "status_code": 200,
+      "request_schema": "SanitizeTextRequest",
+      "response_schema": "SanitizeTextResponse"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/privacy/status",
+      "status_code": 200,
+      "request_schema": "None",
+      "response_schema": "ZDRStatusResponse"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "scenario": "Anonimización Exhaustiva de PII en Redacción de Alumno",
+      "given": "Una redacción de estudiante que incluye nombre propio, email, teléfono español, DNI con letra de control, nombre de la academia y dirección física.",
+      "when": "Se invoca PIISanitizer.sanitize().",
+      "then": "Todos los datos identificativos son reemplazados por sus respectivos tokens de redacción, la estructura gramatical se mantiene intacta y se registra el conteo exacto de PII eliminada."
+    },
+    {
+      "scenario": "Enforzamiento Estricto de Zero Data Retention (ZDR)",
+      "given": "El gestor de clientes ZDR configurado en la aplicación.",
+      "when": "Se preparan los parámetros y cabeceras para una llamada a OpenAI o Anthropic.",
+      "then": "Se valida que store: False y las cabeceras de no-retención estén explícitamente presentes; cualquier intento de desactivar ZDR con ENFORCE_ZDR=True genera una excepción ZDRViolationError."
+    },
+    {
+      "scenario": "Validación de Consentimiento de Menores (RGPD / LOPDGDD)",
+      "given": "La fecha de nacimiento de un estudiante menor de 14 años.",
+      "when": "Se valida el consentimiento sin aportar autorización del tutor legal.",
+      "then": "El resultado determina requires_guardian_consent=True e is_valid=False. Al aportar un GuardianConsent activo, el estado cambia a is_valid=True."
+    },
+    {
+      "scenario": "Ejecución del Derecho al Olvido (Right to Erasure)",
+      "given": "Una entrega de redacción almacenada con texto y fotografías asociadas.",
+      "when": "Se ejecuta la función de ejercicio del Derecho al Olvido.",
+      "then": "El texto es sustituido por una versión irreversiblemente anonimizada, se genera una orden de purga para las fotografías y se emite un certificado criptográfico con hash SHA-256."
+    },
+    {
+      "scenario": "Endpoints de Privacidad y ZDR en API",
+      "given": "El microservicio ai_service en ejecución.",
+      "when": "Se consulta GET /api/v1/privacy/status o se envía una solicitud a POST /api/v1/privacy/sanitize.",
+      "then": "La API responde con HTTP 200, certificando el estado ZDR activo y devolviendo el texto sanitizado con su desglose de tipos de PII."
+    }
+  ],
+  "security_considerations": [
+    "Zero Data Retention (ZDR) obligatorio en todas las llamadas a proveedores externos de IA.",
+    "Anonimización de PII previa a cualquier salida de datos del entorno controlado.",
+    "Cumplimiento riguroso de la LOPDGDD (umbral 14 años) para menores en España.",
+    "Auditabilidad criptográfica del Derecho al Olvido (Art. 17 RGPD) sin retención de datos personales."
+  ]
+}

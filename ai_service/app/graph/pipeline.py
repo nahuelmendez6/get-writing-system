@@ -120,6 +120,9 @@ async def run_evaluation_pipeline(payload: EvaluationRequest) -> EvaluationRespo
         ai_detection=ai_det,
         ocr_applied=final_state.get("ocr_applied", False),
         extracted_text=final_state.get("extracted_text"),
+        zdr_enforced=final_state.get("zdr_enforced", True),
+        sanitized_pii_count=final_state.get("sanitized_pii_count", 0),
+        pii_types_detected=final_state.get("pii_types_detected", []),
         status="SUCCESS",
         execution_time_seconds=execution_duration,
     )

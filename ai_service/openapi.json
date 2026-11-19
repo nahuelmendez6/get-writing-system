@@ -89,6 +89,158 @@
           }
         }
       }
+    },
+    "/internal/v1/privacy/sanitize": {
+      "post": {
+        "tags": [
+          "Privacy & Compliance",
+          "Privacy & Compliance"
+        ],
+        "summary": "Sanitize Personally Identifiable Information (PII) from text",
+        "description": "Mask student names, emails, phone numbers, DNI/NIE IDs, addresses, and institutions.",
+        "operationId": "sanitize_text_internal_v1_privacy_sanitize_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SanitizeTextRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SanitizeTextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/privacy/status": {
+      "get": {
+        "tags": [
+          "Privacy & Compliance",
+          "Privacy & Compliance"
+        ],
+        "summary": "Get Zero Data Retention (ZDR) and GDPR compliance status",
+        "description": "Return system Zero Data Retention compliance settings and active policies.",
+        "operationId": "get_privacy_status_internal_v1_privacy_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZDRStatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/privacy/validate-minor-consent": {
+      "post": {
+        "tags": [
+          "Privacy & Compliance",
+          "Privacy & Compliance"
+        ],
+        "summary": "Validate minor age and parental/guardian consent according to GDPR and LOPDGDD",
+        "description": "Verify age threshold (< 14 in Spain) and legal guardian consent status.",
+        "operationId": "validate_minor_consent_internal_v1_privacy_validate_minor_consent_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MinorConsentValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MinorConsentValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/privacy/right-to-erasure": {
+      "post": {
+        "tags": [
+          "Privacy & Compliance",
+          "Privacy & Compliance"
+        ],
+        "summary": "Execute Right to Erasure / Right to be Forgotten (GDPR Art. 17)",
+        "description": "Pseudonymize submission text, purge photographic metadata, and issue an audit certificate.",
+        "operationId": "execute_right_to_erasure_internal_v1_privacy_right_to_erasure_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErasureRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErasureResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -172,6 +324,90 @@
           "justification"
         ],
         "title": "CriterionEvaluation"
+      },
+      "ErasureRequest": {
+        "properties": {
+          "student_id": {
+            "type": "string",
+            "title": "Student Id",
+            "description": "Student identifier"
+          },
+          "submission_text": {
+            "type": "string",
+            "title": "Submission Text",
+            "description": "Student text submission to erase/pseudonymize"
+          },
+          "photo_paths": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Photo Paths",
+            "description": "Optional associated image paths to purge"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "student_id",
+          "submission_text"
+        ],
+        "title": "ErasureRequest"
+      },
+      "ErasureResponse": {
+        "properties": {
+          "certificate_id": {
+            "type": "string",
+            "title": "Certificate Id",
+            "description": "Unique certificate UUID"
+          },
+          "student_id_hash": {
+            "type": "string",
+            "title": "Student Id Hash",
+            "description": "SHA-256 hash of the student identifier"
+          },
+          "erased_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Erased At",
+            "description": "Timestamp of erasure execution in UTC"
+          },
+          "erased_items": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Erased Items",
+            "description": "List of components and paths erased"
+          },
+          "verification_hash": {
+            "type": "string",
+            "title": "Verification Hash",
+            "description": "Cryptographic verification signature hash"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status of the erasure operation",
+            "default": "COMPLETED"
+          }
+        },
+        "type": "object",
+        "required": [
+          "certificate_id",
+          "student_id_hash",
+          "erased_at",
+          "erased_items",
+          "verification_hash"
+        ],
+        "title": "ErasureResponse"
       },
       "EvaluationRequest": {
         "properties": {
@@ -322,6 +558,27 @@
             "title": "Extracted Text",
             "description": "Literal transcribed text if an image submission was provided"
           },
+          "zdr_enforced": {
+            "type": "boolean",
+            "title": "Zdr Enforced",
+            "description": "Whether Zero Data Retention (ZDR) was enforced for external LLM calls",
+            "default": true
+          },
+          "sanitized_pii_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Sanitized Pii Count",
+            "description": "Total number of sensitive PII occurrences redacted before evaluation",
+            "default": 0
+          },
+          "pii_types_detected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pii Types Detected",
+            "description": "Categories of PII detected and redacted (e.g. EMAIL, PHONE, ID, STUDENT_NAME)"
+          },
           "status": {
             "type": "string",
             "enum": [
@@ -350,6 +607,83 @@
           "execution_time_seconds"
         ],
         "title": "EvaluationResponse"
+      },
+      "GuardianConsentSchema": {
+        "properties": {
+          "guardian_name": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 2,
+            "title": "Guardian Name",
+            "description": "Full name of legal guardian"
+          },
+          "guardian_email": {
+            "type": "string",
+            "maxLength": 255,
+            "title": "Guardian Email",
+            "description": "Email address of legal guardian"
+          },
+          "guardian_phone": {
+            "type": "string",
+            "maxLength": 50,
+            "title": "Guardian Phone",
+            "description": "Phone number of legal guardian"
+          },
+          "relationship": {
+            "type": "string",
+            "enum": [
+              "PARENT",
+              "LEGAL_GUARDIAN"
+            ],
+            "title": "Relationship",
+            "description": "Relationship to student (PARENT or LEGAL_GUARDIAN)"
+          },
+          "verification_method": {
+            "type": "string",
+            "enum": [
+              "DIGITAL_SIGNATURE",
+              "VERIFIED_EMAIL",
+              "ACADEMY_PAPER"
+            ],
+            "title": "Verification Method",
+            "description": "Verification method used for parental consent"
+          },
+          "consent_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Consent Date",
+            "description": "Date when guardian consent was granted"
+          },
+          "document_hash": {
+            "type": "string",
+            "minLength": 16,
+            "title": "Document Hash",
+            "description": "Cryptographic hash of the consent document"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "REVOKED",
+              "EXPIRED"
+            ],
+            "title": "Status",
+            "description": "Current status of the consent record",
+            "default": "ACTIVE"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "guardian_name",
+          "guardian_email",
+          "guardian_phone",
+          "relationship",
+          "verification_method",
+          "consent_date",
+          "document_hash"
+        ],
+        "title": "GuardianConsentSchema"
       },
       "HTTPValidationError": {
         "properties": {
@@ -408,6 +742,93 @@
           "timestamp"
         ],
         "title": "HealthCheckResponse"
+      },
+      "MinorConsentValidationRequest": {
+        "properties": {
+          "birth_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Birth Date",
+            "description": "Student birth date"
+          },
+          "guardian_consent": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuardianConsentSchema"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Legal guardian consent details if student is under 14"
+          },
+          "reference_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Date",
+            "description": "Optional reference date for age calculation (defaults to current date)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "birth_date"
+        ],
+        "title": "MinorConsentValidationRequest"
+      },
+      "MinorConsentValidationResponse": {
+        "properties": {
+          "is_minor": {
+            "type": "boolean",
+            "title": "Is Minor",
+            "description": "True if age < 18"
+          },
+          "student_age": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Student Age",
+            "description": "Calculated student age in completed years"
+          },
+          "requires_guardian_consent": {
+            "type": "boolean",
+            "title": "Requires Guardian Consent",
+            "description": "True if age < 14 under Spanish LOPDGDD"
+          },
+          "is_valid": {
+            "type": "boolean",
+            "title": "Is Valid",
+            "description": "True if consent criteria are satisfied to proceed"
+          },
+          "legal_basis": {
+            "type": "string",
+            "title": "Legal Basis",
+            "description": "GDPR / LOPDGDD legal basis description"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors",
+            "description": "Validation failure messages if any"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_minor",
+          "student_age",
+          "requires_guardian_consent",
+          "is_valid",
+          "legal_basis"
+        ],
+        "title": "MinorConsentValidationResponse"
       },
       "MistakeAnnotation": {
         "properties": {
@@ -509,6 +930,33 @@
         ],
         "title": "PedagogicalFeedback"
       },
+      "RedactionItem": {
+        "properties": {
+          "category": {
+            "type": "string",
+            "title": "Category",
+            "description": "PII category (EMAIL, PHONE, ID, STUDENT_NAME, etc.)"
+          },
+          "replacement_token": {
+            "type": "string",
+            "title": "Replacement Token",
+            "description": "Masked placeholder token"
+          },
+          "value_hash": {
+            "type": "string",
+            "title": "Value Hash",
+            "description": "SHA-256 non-reversible hash for audit"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "category",
+          "replacement_token",
+          "value_hash"
+        ],
+        "title": "RedactionItem"
+      },
       "RubricEvaluation": {
         "properties": {
           "criteria": {
@@ -565,6 +1013,89 @@
         ],
         "title": "RubricEvaluation"
       },
+      "SanitizeTextRequest": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 50000,
+            "minLength": 1,
+            "title": "Text",
+            "description": "Raw student text to sanitize"
+          },
+          "custom_entities": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Custom Entities",
+            "description": "Optional list of specific entity names to sanitize (e.g. known student full name)"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text"
+        ],
+        "title": "SanitizeTextRequest"
+      },
+      "SanitizeTextResponse": {
+        "properties": {
+          "original_length": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Original Length",
+            "description": "Character count of raw text"
+          },
+          "sanitized_text": {
+            "type": "string",
+            "title": "Sanitized Text",
+            "description": "Sanitized text with masked PII placeholders"
+          },
+          "pii_detected_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Pii Detected Count",
+            "description": "Total count of PII entities found and sanitized"
+          },
+          "pii_types": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pii Types",
+            "description": "Unique categories of PII detected"
+          },
+          "word_count": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Word Count",
+            "description": "Word count of the sanitized text"
+          },
+          "redactions": {
+            "items": {
+              "$ref": "#/components/schemas/RedactionItem"
+            },
+            "type": "array",
+            "title": "Redactions",
+            "description": "Audit log of sanitized items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "original_length",
+          "sanitized_text",
+          "pii_detected_count",
+          "word_count"
+        ],
+        "title": "SanitizeTextResponse"
+      },
       "ValidationError": {
         "properties": {
           "loc": {
@@ -604,6 +1135,56 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "ZDRStatusResponse": {
+        "properties": {
+          "zdr_enforced": {
+            "type": "boolean",
+            "title": "Zdr Enforced",
+            "description": "Whether Zero Data Retention is active"
+          },
+          "active_provider": {
+            "type": "string",
+            "title": "Active Provider",
+            "description": "Active configured LLM provider"
+          },
+          "supported_providers": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Supported Providers",
+            "description": "List of supported LLM providers"
+          },
+          "retention_policy": {
+            "type": "string",
+            "title": "Retention Policy",
+            "description": "Active data retention policy identifier"
+          },
+          "gdpr_minor_protection_active": {
+            "type": "boolean",
+            "title": "Gdpr Minor Protection Active",
+            "description": "Whether GDPR minor compliance rules are active"
+          },
+          "headers_injected": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Headers Injected",
+            "description": "List of mandatory ZDR HTTP headers injected"
+          }
+        },
+        "type": "object",
+        "required": [
+          "zdr_enforced",
+          "active_provider",
+          "supported_providers",
+          "retention_policy",
+          "gdpr_minor_protection_active",
+          "headers_injected"
+        ],
+        "title": "ZDRStatusResponse"
       }
     }
   }

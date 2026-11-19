@@ -170,6 +170,19 @@ class EvaluationResponse(BaseModel):
         default=None,
         description="Literal transcribed text if an image submission was provided",
     )
+    zdr_enforced: bool = Field(
+        default=True,
+        description="Whether Zero Data Retention (ZDR) was enforced for external LLM calls",
+    )
+    sanitized_pii_count: int = Field(
+        default=0,
+        ge=0,
+        description="Total number of sensitive PII occurrences redacted before evaluation",
+    )
+    pii_types_detected: list[str] = Field(
+        default_factory=list,
+        description="Categories of PII detected and redacted (e.g. EMAIL, PHONE, ID, STUDENT_NAME)",
+    )
     status: Literal["SUCCESS", "FAILED"] = Field(
         default="SUCCESS",
         description="Overall pipeline execution status",

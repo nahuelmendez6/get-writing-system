@@ -1,14 +1,14 @@
 # Current Active Task
 
 ## Task Metadata
-- **Task ID**: `TASK-2.1`
-- **Backlog Ref**: `QA-01 / AI-04 Lite`
+- **Task ID**: `TASK-2.2`
+- **Backlog Ref**: `SEC-01`
 - **Phase**: `FASE 2: Benchmark, Privacidad y Ajuste del Modelo`
-- **Title**: Benchmark de IA y Arnés Multimodal OCR para Manuscritos
+- **Title**: Privacidad y Zero Data Retention (ZDR)
 - **Current State**: `COMPLETED`
 - **Assigned Agent**: `Committer`
 - **Iteration / Retry Count**: `0 / 3`
-- **Target Requirements**: `RF-06`, `RF-07`, `RF-08`, `RF-16`
+- **Target Requirements**: `RF-03`
 
 ## Progress Tracking
 - [x] Planning (`Planner`) $\rightarrow$ `task_spec.md`
@@ -18,18 +18,17 @@
 - [x] Version Control (`Committer`) $\rightarrow$ `commit_report.md`
 
 ## Active Artifacts
-- **Task Spec**: `tasks/TASK-2.1/task_spec.md` (and `tasks/TASK-2.1/task_spec.json`)
-- **Implementation Report**: `tasks/TASK-2.1/implementation_report.md` (and `tasks/TASK-2.1/implementation_report.json`)
-- **Test Report**: `tasks/TASK-2.1/test_report.md` (and `tasks/TASK-2.1/test_report.json`)
-- **Documentation Report**: `tasks/TASK-2.1/documentation_report.md` (and `tasks/TASK-2.1/documentation_report.json`)
-- **Commit Report**: `tasks/TASK-2.1/commit_report.md` (and `tasks/TASK-2.1/commit_report.json`)
+- **Task Spec**: `tasks/TASK-2.2/task_spec.md` (and `tasks/TASK-2.2/task_spec.json`)
+- **Implementation Report**: `tasks/TASK-2.2/implementation_report.md` (and `tasks/TASK-2.2/implementation_report.json`)
+- **Test Report**: `tasks/TASK-2.2/test_report.md` (and `tasks/TASK-2.2/test_report.json`)
+- **Documentation Report**: `tasks/TASK-2.2/documentation_report.md` (and `tasks/TASK-2.2/documentation_report.json`)
+- **Commit Report**: `tasks/TASK-2.2/commit_report.md` (and `tasks/TASK-2.2/commit_report.json`)
 
 ## Context & Execution Notes
-Task TASK-2.1 successfully executed and verified across the stack:
-1. Implemented `image_processing.py` purging EXIF metadata (GPS, device) for GDPR compliance.
-2. Built LangGraph `ocr_transcription_node` enforcing the Literal OCR Principle without autocorrecting student errors.
-3. Expanded evaluation pipeline to 8 nodes, accepting digital and handwritten photographic submissions.
-4. Created extensible benchmark dataset with 60 representative samples across B1, B2, C1, C2 and all genres.
-5. Calibrated Cambridge scoring logic, achieving MAE = 0.306 bands (target <= 0.50) and 99.6% accuracy within +-1 band (target >= 80%).
-6. Developed interactive CLI tool (`ai_service/scripts/run_benchmark.py`) for single-photo evaluations and batch runs.
-7. Authored ADR-004, updated CHANGELOG.md, and validated all 70 unit and integration tests passing with 0 errors in `mypy --strict` and `ruff check`.
+Task TASK-2.2 successfully executed and verified across the stack:
+1. Implemented `sanitizer.py` with multi-category PII masking (names, greetings, signatures, emails, phone numbers, Spanish DNI/NIE with modulo 23, passports, institutions, instructors, addresses).
+2. Implemented `zdr.py` with `ZDRClientManager` enforcing enterprise headers and `store=False` on external LLM calls.
+3. Implemented `gdpr.py` (both in `ai_service` and `backend`) with minor age verification (14 years threshold under Spanish LOPDGDD and GDPR Art. 8) and Right to Erasure cryptographic certificates.
+4. Integrated PII sanitization and ZDR status directly into LangGraph pipeline and evaluation response contracts.
+5. Added privacy REST endpoints: `/internal/v1/privacy/sanitize`, `/internal/v1/privacy/status`, `/internal/v1/privacy/validate-minor-consent`, `/internal/v1/privacy/right-to-erasure`.
+6. Authored ADR-005, synchronized OpenAPI definitions, updated CHANGELOG.md, and verified 103/103 tests passing with 0 errors in `mypy --strict` and `ruff check`.

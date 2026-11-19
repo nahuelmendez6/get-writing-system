@@ -12,6 +12,9 @@ class EvaluationState(TypedDict, total=False):
     ocr_applied: bool
     ocr_confidence: float | None
     sanitized_text: str
+    zdr_enforced: bool
+    sanitized_pii_count: int
+    pii_types_detected: list[str]
     task_prompt: str
     level: str
     text_type: str

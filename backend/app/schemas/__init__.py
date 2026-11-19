@@ -5,6 +5,13 @@ from app.schemas.health import (
     HealthCheckResponse,
     StandardErrorResponse,
 )
+from app.schemas.privacy import (
+    ErasureRequest,
+    ErasureResponse,
+    GuardianConsentSchema,
+    MinorConsentValidationRequest,
+    MinorConsentValidationResponse,
+)
 from app.schemas.rubric import (
     RubricBase,
     RubricCreate,
@@ -26,4 +33,9 @@ __all__ = [
     "RubricCriterionRead",
     "RubricRead",
     "calculate_institutional_score",
+    "GuardianConsentSchema",
+    "MinorConsentValidationRequest",
+    "MinorConsentValidationResponse",
+    "ErasureRequest",
+    "ErasureResponse",
 ]

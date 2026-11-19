@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2026-11-19 (TASK-2.2 - SEC-01)
+- **Zero Data Retention (ZDR) Enforcement & Provider Governance (`SEC-01`)**:
+  - Module `ai_service/app/core/zdr.py` with `ZDRClientManager` enforcing mandatory non-retention policies across LLM providers (`store: false` for OpenAI, zero-retention metadata for Anthropic, data governance headers for Gemini).
+  - Runtime compliance validation asserting that no call can persist student essays or photos externally, raising `ZDRViolationError` on non-compliant configurations.
+  - Context manager `enforce_zdr_policy()` ensuring isolated inference blocks cannot bypass privacy policies.
+- **Personally Identifiable Information (PII) Sanitization Filter (`SEC-01`)**:
+  - High-precision regex and checksum engine `ai_service/app/core/sanitizer.py` detecting and redacting: student names, epistolary greetings/signatures, emails, phone numbers, Spanish DNI/NIE with modulo-23 letter validation, passports, institutions ("Get Idiomas", schools), instructors, physical addresses, and 5-digit postal codes.
+  - Preserves formulaic Cambridge greetings ("Dear Sir or Madam", "Dear Editor") without false positives.
+  - Generates non-reversible SHA-256 value hashes for auditability without storing raw personal data.
+  - Full integration into LangGraph `context_prep_node` and exposure of sanitization metrics (`sanitized_pii_count`, `pii_types_detected`) in `EvaluationResponse`.
+- **GDPR Minor Protection & Right to Erasure Framework (`SEC-01 / RF-03`)**:
+  - Module `core/gdpr.py` (available in both `ai_service` and `backend`) implementing age validation under GDPR Art. 8 and Spanish LOPDGDD Art. 7 (14-year legal threshold for autonomous digital consent).
+  - Validation of parental/legal guardian consent records (`GuardianConsentSchema`) with status, verification method, and document hash tracking.
+  - Right to Erasure utility (`execute_right_to_erasure`) executing irreversible text anonymization, dispatching photograph purge directives, and issuing cryptographically verifiable `ErasureCertificate` records.
+- **RESTful Privacy Endpoints & Contracts**:
+  - `POST /internal/v1/privacy/sanitize`: Standalone text sanitization with detailed redaction items.
+  - `GET /internal/v1/privacy/status`: Real-time ZDR compliance status and injected headers audit.
+  - `POST /internal/v1/privacy/validate-minor-consent`: Minor age and guardian authorization verification.
+  - `POST /internal/v1/privacy/right-to-erasure`: Cryptographic Right to Erasure execution.
+  - Synchronized Pydantic schemas in `backend/app/schemas/privacy.py` and `ai_service/app/schemas/privacy.py`.
+  - Synchronized OpenAPI 3.1 specification at `ai_service/openapi.json`.
+  - Architecture Decision Record: `ADR-005` (Zero Data Retention & Minor Privacy Protection Framework).
+  - Automated test suite expanded to 103 total tests passing (80 in ai_service, 23 in backend) with 86.2% global coverage and 0 typing errors (`mypy --strict`).
+
 ### Added - 2026-11-17 (TASK-2.1 - QA-01 / AI-04 Lite)
 - **Multimodal OCR & Literal Transcription Engine (`AI-04 Lite`)**:
   - Image processing module `image_processing.py` with EXIF metadata stripping (purging GPS, device, and timestamps for GDPR compliance on minor submissions) and format normalization (JPEG, PNG, WEBP).

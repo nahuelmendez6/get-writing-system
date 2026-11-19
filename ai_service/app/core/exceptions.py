@@ -51,6 +51,54 @@ class LLMProviderError(AIServiceException):
         )
 
 
+class ZDRViolationError(AIServiceException):
+    """Raised when an external LLM request violates Zero Data Retention requirements."""
+
+    def __init__(
+        self,
+        message: str = "Infracción de política Zero Data Retention (ZDR): almacenamiento de datos no permitido.",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            error_code="ZDR_VIOLATION",
+            message=message,
+            status_code=status.HTTP_403_FORBIDDEN,
+            details=details,
+        )
+
+
+class MinorConsentRequiredError(AIServiceException):
+    """Raised when processing data of a minor without verified legal guardian consent."""
+
+    def __init__(
+        self,
+        message: str = "Consentimiento de tutor legal requerido para estudiantes menores de 14 años (RGPD / LOPDGDD).",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            error_code="MINOR_CONSENT_REQUIRED",
+            message=message,
+            status_code=status.HTTP_403_FORBIDDEN,
+            details=details,
+        )
+
+
+class PrivacyComplianceError(AIServiceException):
+    """Raised when a privacy, sanitization, or erasure operation fails validation."""
+
+    def __init__(
+        self,
+        message: str = "Error de cumplimiento de privacidad o RGPD.",
+        details: dict[str, Any] | None = None,
+    ) -> None:
+        super().__init__(
+            error_code="PRIVACY_COMPLIANCE_ERROR",
+            message=message,
+            status_code=status.HTTP_400_BAD_REQUEST,
+            details=details,
+        )
+
+
 def setup_exception_handlers(app: FastAPI) -> None:
     """Setup standardized JSON error handlers."""
 

@@ -35,7 +35,10 @@ class BenchmarkRunner:
         if isinstance(source, (str, Path)):
             file_path = Path(source)
             if not file_path.is_absolute():
-                file_path = self.base_dir / file_path
+                if not file_path.exists() and (self.base_dir / file_path).exists():
+                    file_path = self.base_dir / file_path
+                elif not file_path.exists() and (self.base_dir.parent / file_path).exists():
+                    file_path = self.base_dir.parent / file_path
             self.dataset_dir = file_path.parent
             logger.info("Loading benchmark dataset from %s", file_path)
             with open(file_path, encoding="utf-8") as f:
